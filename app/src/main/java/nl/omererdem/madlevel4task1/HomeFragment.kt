@@ -13,6 +13,7 @@ import kotlinx.android.synthetic.main.fragment_home.*
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class HomeFragment : Fragment() {
+    private lateinit var shoppingItemRepository: ShoppingItemRepository
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -24,6 +25,8 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        shoppingItemRepository = ShoppingItemRepository(requireContext())
 
         fabAdd.setOnClickListener {
             onAddShoppingItem()
