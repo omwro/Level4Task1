@@ -3,6 +3,7 @@ package nl.omererdem.madlevel4task1
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.dialog_add_shopping_item.view.*
 import kotlinx.android.synthetic.main.fragment_home.*
@@ -41,6 +43,9 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        rvShippingList.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        rvShippingList.adapter = shoppingItemAdapter
+
         shoppingItemRepository = ShoppingItemRepository(requireContext())
         getShoppingListFromDatabase()
 
@@ -59,18 +64,19 @@ class HomeFragment : Fragment() {
         builder.setTitle(getString(R.string.add_shopping_item_dialog_title))
 
         val dialogLayout = layoutInflater.inflate(R.layout.dialog_add_shopping_item, null)
-        val shoppingItemName = dialogLayout.etDialogName.text.toString()
-        val shoppingItemAmount = dialogLayout.etDialogNumber.text.toString()
+        val etName = dialogLayout.etDialogName
+        val etAmount = dialogLayout.etDialogNumber
 
         builder.setView(dialogLayout)
         builder.setPositiveButton(R.string.ok) {
             _: DialogInterface, _: Int ->
-            if (shoppingItemName.isNotBlank() && shoppingItemAmount.isNotBlank()) {
-                addShoppingItem(shoppingItemName, shoppingItemAmount.toInt())
+            if (validateFields(etName, etAmount)) {
+                addShoppingItem(etName.text.toString(), etAmount.text.toString().toInt())
             } else {
                 Toast.makeText(activity, "Please fill in the fields correct", Toast.LENGTH_LONG).show()
             }
         }
+        builder.show()
     }
 
     private fun addShoppingItem(name: String, amount: Int) {
@@ -83,6 +89,10 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun validateFields(etName: EditText, etAmount: EditText): Boolean {
+        return etName.text.toString().isNotBlank() &&
+                etAmount.text.toString().isNotBlank()
+    }
 
     private fun onClearShoppingItems() {
         mainScope.launch {
