@@ -85,7 +85,12 @@ class HomeFragment : Fragment() {
 
 
     private fun onClearShoppingItems() {
-
+        mainScope.launch {
+            withContext(Dispatchers.IO) {
+                shoppingItemRepository.deleteAllShoppingItems()
+            }
+            getShoppingListFromDatabase()
+        }
     }
 
     private fun getShoppingListFromDatabase() {
