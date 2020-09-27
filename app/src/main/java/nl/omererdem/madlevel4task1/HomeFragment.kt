@@ -1,12 +1,17 @@
 package nl.omererdem.madlevel4task1
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
+import kotlinx.android.synthetic.main.dialog_add_shopping_item.view.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,18 +40,45 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         shoppingItemRepository = ShoppingItemRepository(requireContext())
+        getShoppingListFromDatabase()
 
         fabAdd.setOnClickListener {
-            onAddShoppingItem()
+            showAddShoppingItemDialog()
         }
         fabClear.setOnClickListener {
             onClearShoppingItems()
         }
     }
 
-    private fun onAddShoppingItem() {
+    private fun showAddShoppingItemDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(getString(R.string.add_shopping_item_dialog_title))
 
+        val dialogLayout = layoutInflater.inflate(R.layout.dialog_add_shopping_item, null)
+        val shoppingItemName = dialogLayout.etDialogName.text.toString()
+        val shoppingItemAmount = dialogLayout.etDialogNumber.text.toString()
+
+        builder.setView(dialogLayout)
+        builder.setPositiveButton(R.string.ok) {
+            _: DialogInterface, _: Int ->
+            if (shoppingItemName.isNotBlank() && shoppingItemAmount.isNotBlank()) {
+                addShoppingItem(shoppingItemName, shoppingItemAmount.toInt())
+            } else {
+                Toast.makeText(activity, "Please fill in the fields correct", Toast.LENGTH_LONG).show()
+            }
+        }
     }
+
+    private fun addShoppingItem(name: String, amount: Int) {
+        mainScope.launch {
+            val shoppingItem = ShoppingItem(amount, name)
+            withContext(Dispatchers.IO) {
+                shoppingItemRepository.insertShoppingItem(shoppingItem)
+            }
+            getShoppingListFromDatabase()
+        }
+    }
+
 
     private fun onClearShoppingItems() {
 
