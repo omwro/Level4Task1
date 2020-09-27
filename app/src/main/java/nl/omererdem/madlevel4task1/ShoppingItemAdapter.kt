@@ -28,5 +28,4 @@ class ShoppingItemAdapter (private val shoppingItems: List<ShoppingItem>) : Recy
     override fun getItemCount(): Int {
         return shoppingItems.size
     }
-
 }

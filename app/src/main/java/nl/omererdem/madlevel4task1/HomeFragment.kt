@@ -11,6 +11,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.dialog_add_shopping_item.view.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +43,8 @@ class HomeFragment : Fragment() {
 
         shoppingItemRepository = ShoppingItemRepository(requireContext())
         getShoppingListFromDatabase()
+
+        createItemTouchHelper().attachToRecyclerView(rvShippingList)
 
         fabAdd.setOnClickListener {
             showAddShoppingItemDialog()
@@ -93,5 +97,30 @@ class HomeFragment : Fragment() {
             this@HomeFragment.shoppingItems.addAll(shoppingList)
             this@HomeFragment.shoppingItemAdapter.notifyDataSetChanged()
         }
+    }
+
+    private fun createItemTouchHelper(): ItemTouchHelper {
+        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val shoppingItemToDelete = shoppingItems[position]
+
+                mainScope.launch {
+                    withContext(Dispatchers.IO) {
+                        shoppingItemRepository.deleteShoppingItem(shoppingItemToDelete)
+                    }
+                    getShoppingListFromDatabase()
+                }
+            }
+        }
+        return ItemTouchHelper(callback)
     }
 }
